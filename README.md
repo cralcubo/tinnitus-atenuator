@@ -7,14 +7,18 @@ As you can read in: Where does this program come from?, I read a research articl
 
 IF YOU USE THIS PROGRAM, USE IT AT YOUR OWN RISK.
 
+Do not listen the sounds too loud.
+
 What is it?
 -----------
 This is a program that will filter the frequencies between which a tinnitus ring was detected.
 To filter the sound of the computer, a band stop Butterworth Filter is used.
+The filter used is from the library: dsp-collection.jar (http://www.source-code.biz/dsp/java/)
 
 Where does this program come from?
 ----------------------------------
-This program was inspired by the research: Short and Intense Tailor-Made Notched Music Training against Tinnitus: The Tinnitus Frequency Matters 
+This program was inspired by the research: Short and Intense Tailor-Made Notched Music Training against Tinnitus: The Tinnitus Frequency Matters.
+
 Link: http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0024685#pone-0024685-g005
 
 How to use it?
