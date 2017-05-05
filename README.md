@@ -1,4 +1,4 @@
-# tinnitus-atenuator
+# tinnitus-attenuator
 
 Disclaimer
 ----------

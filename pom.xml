@@ -3,11 +3,11 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>bo.roman</groupId>
-	<artifactId>tinnitus-atenuator</artifactId>
+	<artifactId>tinnitus-attenuator</artifactId>
 	<version>1.0.0</version>
 	<packaging>jar</packaging>
 
-	<name>tinnitus-atenuator</name>
+	<name>tinnitus-attenuator</name>
 
 	<developers>
 		<developer>
