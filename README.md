@@ -33,4 +33,9 @@ Because Java was not enough to route the audio of your computer, you need a thir
 
 Once installed the audio router, set in your computer as the default audio device to be used by it.
 
+Dependencies
+------------
+This program depends on the DSP libraries from: source-code.biz, they can be downloaded from: http://www.source-code.biz/dsp/java/
+
+
 

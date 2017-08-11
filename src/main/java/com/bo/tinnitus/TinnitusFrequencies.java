@@ -2,20 +2,27 @@ package com.bo.tinnitus;
 
 public class TinnitusFrequencies {
 	
-	private final double leftFrequency;
-	private final double rightFrequency;
+	private Number leftFrequency;
+	private Number rightFrequency;
 	
-	public TinnitusFrequencies(double leftFrequency, double rightFrequency) {
+	public TinnitusFrequencies() {
+		this(null, null);
+	}
+	
+	public TinnitusFrequencies(Number leftFrequency, Number rightFrequency) {
 		this.leftFrequency = leftFrequency;
 		this.rightFrequency = rightFrequency;
 	}
-	
-	public double getLeftFrequency() {
+	public Number getLeftFrequency() {
 		return leftFrequency;
 	}
-	
-	public double getRightFrequency() {
+	public void setLeftFrequency(Number leftFrequency) {
+		this.leftFrequency = leftFrequency;
+	}
+	public Number getRightFrequency() {
 		return rightFrequency;
 	}
-
+	public void setRightFrequency(Number rightFrequency) {
+		this.rightFrequency = rightFrequency;
+	}
 }

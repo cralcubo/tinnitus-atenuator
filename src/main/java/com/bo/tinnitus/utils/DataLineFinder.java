@@ -34,7 +34,7 @@ public class DataLineFinder {
 				} else {
 					lis = mixer.getSourceLineInfo();
 				}
-
+					  
 				for (Line.Info li : lis) {
 					Line line = mixer.getLine(li);
 					if (clazz.isAssignableFrom(line.getClass())) {

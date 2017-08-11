@@ -1,6 +1,7 @@
 package com.bo.tinnitus;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
@@ -23,73 +24,67 @@ import biz.source_code.dsp.sound.SignalFilterAudioInputStream;
 
 public class TinnitusAtenuator {
 	private final static Logger log = LoggerFactory.getLogger(TinnitusAtenuator.class);
-
-	private final SourceDataLine outputAudioLine;
-	private final TargetDataLine bridgeAudioLine;
-
-	private final IirFilter leftChannelFilter;
-	private final IirFilter rightChannelFilter;
+	
+	private TinnitusFrequencies tinnitusFrequencies;
+	private SystemSoundParameters systemSoundParameters;
+	
+	private TargetDataLine originLine;
+	private SourceDataLine targetLine;
+	
 
 	public TinnitusAtenuator(TinnitusFrequencies tinnitusFrequencies, SystemSoundParameters systemSoundParameters) {
-		try {
-			bridgeAudioLine = DataLineFinder.findDataLine(systemSoundParameters.getBridgeDeviceName(),
-					TargetDataLine.class);
-		} catch (LineUnavailableException e) {
-			throw new RuntimeException("There was an error accessing the Audio device ["
-					+ systemSoundParameters.getBridgeDeviceName() + "].", e);
-		}
-
-		try {
-			outputAudioLine = DataLineFinder.findDataLine(systemSoundParameters.getOutputSoundDevice(),
-					SourceDataLine.class);
-		} catch (LineUnavailableException e) {
-			throw new RuntimeException("There was an error accessing the Audio device ["
-					+ systemSoundParameters.getOutputSoundDevice() + "].", e);
-		}
-
-		double sampleRate = bridgeAudioLine.getFormat().getSampleRate();
-		leftChannelFilter = createNotchFilter(tinnitusFrequencies.getLeftFrequency(), sampleRate);
-		rightChannelFilter = createNotchFilter(tinnitusFrequencies.getRightFrequency(), sampleRate);
+		this.tinnitusFrequencies = tinnitusFrequencies;
+		this.systemSoundParameters = systemSoundParameters;
 	}
 
 	public void runFilter() {
 		LoggerUtils.logDebug(log, () -> "Running notched filter.");
-
-		Thread t = new Thread(() -> {
-			AudioFormat af = bridgeAudioLine.getFormat();
-			int frameSize = af.getFrameSize();
-			byte[] buffer = new byte[frameSize * 128];
-			try {
-				bridgeAudioLine.open();
-				bridgeAudioLine.start();
-
-				outputAudioLine.open(af);
-				outputAudioLine.start();
-			} catch (LineUnavailableException e) {
-				throw new RuntimeException("There was an error opening the Audio devices from the computer.", e);
-			}
-
-			try (AudioInputStream is = new AudioInputStream(bridgeAudioLine);
-			     AudioInputStream filteredStream = SignalFilterAudioInputStream.getAudioInputStream(is,
-							new SignalFilter[] { leftChannelFilter, rightChannelFilter });) {
-				int read;
-				while ((read = filteredStream.read(buffer)) > 0) {
-					outputAudioLine.write(buffer, 0, read);
-				}
-			} catch (IOException e) {
-				throw new RuntimeException("There was an error reading the audio data from the computer.", e);
-			}
-		});
-		t.start();
+		processAudio(true);
 	}
 	
-	public void stopFilter() {
+	public void bypassAudio() {
+		LoggerUtils.logDebug(log, () -> "Bypassing audio signal.");
+		processAudio(false);
+	}
+
+	public void stop() {
 		LoggerUtils.logDebug(log, () -> "Stopping filter.");
-		DataLine[] lines = { outputAudioLine, bridgeAudioLine };
-		for (DataLine dl : lines) {
-			dl.drain();
-			dl.close();
-			dl.stop();
+		Arrays.asList(originLine, targetLine).forEach(DataLine::close);
+	}
+	
+	public void setSystemSoundParameters(SystemSoundParameters systemSoundParameters) {
+		this.systemSoundParameters = systemSoundParameters;
+	}
+	
+	public SystemSoundParameters getSystemSoundParameters() {
+		return systemSoundParameters;
+	}
+	
+	public void setTinnitusFrequencies(TinnitusFrequencies tinnitusFrequencies) {
+		this.tinnitusFrequencies = tinnitusFrequencies;
+	}
+	
+	public TinnitusFrequencies getTinnitusFrequencies() {
+		return tinnitusFrequencies;
+	}
+	
+	private TargetDataLine createTargetDataLine() {
+		try {
+			LoggerUtils.logDebug(log, () -> "Creating Data Line for the audio source: " + systemSoundParameters.getSourceDeviceName());
+			return DataLineFinder.findDataLine(systemSoundParameters.getSourceDeviceName(), TargetDataLine.class);
+		} catch (LineUnavailableException e) {
+			throw new RuntimeException("There was an error accessing the Audio device ["
+					+ systemSoundParameters.getSourceDeviceName() + "].", e);
+		}
+	}
+	
+	private SourceDataLine createSourceDataLine() {
+		try {
+			LoggerUtils.logDebug(log, () -> "Creating Data Line for the audio destination: " + systemSoundParameters.getTargetSoundDevice());
+			return DataLineFinder.findDataLine(systemSoundParameters.getTargetSoundDevice(), SourceDataLine.class);
+		} catch (LineUnavailableException e) {
+			throw new RuntimeException("There was an error accessing the Audio device ["
+					+ systemSoundParameters.getTargetSoundDevice() + "].", e);
 		}
 	}
 
@@ -106,6 +101,58 @@ public class TinnitusAtenuator {
 
 		return new IirFilter(
 				IirFilterDesignExstrom.design(FilterPassType.bandstop, 5, lowFreq / sampleRate, highFreq / sampleRate));
+	}
+	
+	private void processAudio(boolean isFiltered) {
+		// Initialize Audio Lines
+		originLine = createTargetDataLine();
+		targetLine = createSourceDataLine();
+		if(originLine == null || targetLine == null)
+		{
+			log.error("There is a missing line: OriginLine[{}] | TargetLine[{}]", originLine, targetLine);
+			throw new RuntimeException("Cannot process audio without audio lines.");
+		}
+		
+		Thread t = new Thread(() -> {
+			AudioFormat af = originLine.getFormat();
+			int frameSize = af.getFrameSize();
+			byte[] buffer = new byte[frameSize * 128];
+			try {
+				originLine.open();
+				originLine.start();
+
+				targetLine.open(af);
+				targetLine.start();
+			} catch (LineUnavailableException e) {
+				throw new RuntimeException("There was an error opening the Audio devices from the computer.", e);
+			}
+			
+			try(AudioInputStream ais = getAudioStream(isFiltered, originLine)) {
+				int read;
+				while ((read = ais.read(buffer)) > 0) {
+					targetLine.write(buffer, 0, read);
+				}
+			} catch (IOException e) {
+				throw new RuntimeException("There was an error reading the audio data from the computer.", e);
+			}
+		});
+		t.setName("Tinnitus Filter Thread");
+		t.start();
+	}
+	
+	private AudioInputStream getAudioStream(boolean isFiltered, TargetDataLine targetLine) {
+		if (targetLine == null) {
+			throw new RuntimeException("No audio lines were set up.");
+		}
+		
+		AudioInputStream is = new AudioInputStream(targetLine);
+		if (!isFiltered) {
+			return is;
+		}
+		double sampleRate = targetLine.getFormat().getSampleRate();
+		IirFilter leftChannelFilter = createNotchFilter(tinnitusFrequencies.getLeftFrequency().doubleValue(), sampleRate);
+		IirFilter rightChannelFilter = createNotchFilter(tinnitusFrequencies.getRightFrequency().doubleValue(), sampleRate);
+		return SignalFilterAudioInputStream.getAudioInputStream(is, new SignalFilter[] { leftChannelFilter, rightChannelFilter });
 	}
 
 }

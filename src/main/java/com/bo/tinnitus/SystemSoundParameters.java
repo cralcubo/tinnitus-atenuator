@@ -2,19 +2,31 @@ package com.bo.tinnitus;
 
 public class SystemSoundParameters {
 	
-	private final String audioRouterDeviceName;
-	private final String outputSoundDevice;
-	
-	public SystemSoundParameters(String audioRouterDeviceName, String outputSoundDevice) {
-		this.audioRouterDeviceName = audioRouterDeviceName;
-		this.outputSoundDevice = outputSoundDevice;
+	private String sourceDeviceName;
+	private String targetSoundDevice;
+		
+	public SystemSoundParameters() {
+		this(null, null);
 	}
 	
-	public String getBridgeDeviceName() {
-		return audioRouterDeviceName;
+	public SystemSoundParameters(String sourceDeviceName, String targetSoundDevice) {
+		this.sourceDeviceName = sourceDeviceName;
+		this.targetSoundDevice = targetSoundDevice;
+	}
+
+	public String getSourceDeviceName() {
+		return sourceDeviceName;
 	}
 	
-	public String getOutputSoundDevice() {
-		return outputSoundDevice;
+	public String getTargetSoundDevice() {
+		return targetSoundDevice;
+	}
+
+	public void setSource(String source) {
+		this.sourceDeviceName = source;
+	}
+
+	public void setTarget(String target) {
+		this.targetSoundDevice = target;
 	}
 }
