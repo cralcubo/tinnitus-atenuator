@@ -3,6 +3,7 @@
 Disclaimer
 ----------
 I am not a doctor or a neurologist and I developed this program because I have tinnitus. 
+
 As you can read in: Where does this program come from?, I read a research article that reported positive results for people which tinnitus frequency was < 8Khz.
 
 IF YOU USE THIS PROGRAM, USE IT AT YOUR OWN RISK.
@@ -13,13 +14,13 @@ What is it?
 -----------
 This is a program that will filter the frequencies between which a tinnitus ring was detected.
 To filter the sound of the computer, a band stop Butterworth Filter is used.
-The filter used is from the library: dsp-collection.jar (http://www.source-code.biz/dsp/java/)
+The filter used is from the library: [dsp-collection.jar](http://www.source-code.biz/dsp/java/)
 
 Where does this program come from?
 ----------------------------------
 This program was inspired by the research: Short and Intense Tailor-Made Notched Music Training against Tinnitus: The Tinnitus Frequency Matters.
 
-Link: http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0024685#pone-0024685-g005
+Link: [Short and Intense Tailor-Made Notched Music Training against Tinnitus: The Tinnitus Frequency Matters](http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0024685)
 
 How to use it?
 --------------
@@ -35,7 +36,7 @@ Once installed the audio router, set in your computer as the default audio devic
 
 Dependencies
 ------------
-This program depends on the DSP libraries from: source-code.biz, they can be downloaded from: http://www.source-code.biz/dsp/java/
+This program depends on the DSP libraries from: [source-code.biz](http://www.source-code.biz/dsp/java/)
 
 
 
